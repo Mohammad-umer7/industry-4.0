@@ -8,7 +8,8 @@ export const ROUTE_COLOR: Record<Route, string> = {
   A: '#2DD4BF',
   B: '#38BDF8',
   C: '#818CF8',
-  REJECT: '#FB7185',
+  // Reject shares the single semantic danger red used everywhere else.
+  REJECT: '#F87171',
 }
 
 export const ROUTE_LABEL: Record<Route, string> = {
@@ -24,7 +25,6 @@ export const COLORS = {
   surfaceRaised: '#141E30',
   line: '#1E2A3E',
   lineStrong: '#28374F',
-  brand: '#14B8A6',
   brandBright: '#2DD4BF',
   healthy: '#34D399',
   warn: '#FBBF24',

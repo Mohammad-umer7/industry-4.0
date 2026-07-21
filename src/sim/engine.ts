@@ -100,7 +100,7 @@ function pad2(n: number): string {
 }
 
 /** Format simulated elapsed ms as HH:MM:SS wall-clock. */
-export function formatClock(simMs: number): string {
+function formatClock(simMs: number): string {
   const total = Math.floor(BASE_CLOCK_SECONDS + simMs / 1000)
   const h = Math.floor(total / 3600) % 24
   const m = Math.floor(total / 60) % 60
@@ -237,6 +237,9 @@ export class Engine {
   private readonly forcedQueue: Scenario[] = []
   private readonly procTimes: number[] = []
   private readonly order: number[] = []
+  /** Stable comparator so moveAll's per-frame sort allocates no closure. */
+  private readonly byXDesc = (a: number, b: number): number =>
+    this.packages[b].x - this.packages[a].x
 
   constructor() {
     for (let i = 0; i < POOL_SIZE; i++) {
@@ -434,7 +437,7 @@ export class Engine {
     for (let i = 0; i < this.packages.length; i++) {
       if (this.packages[i].active) order.push(i)
     }
-    order.sort((a, b) => this.packages[b].x - this.packages[a].x)
+    order.sort(this.byXDesc)
 
     let aheadX = Infinity // nearest belt-lane package ahead of the current one
     let minBeltX = Infinity
@@ -695,7 +698,9 @@ export class Engine {
     p.zone = zone
     p.condition = condition
     p.labelReadable = labelReadable
-    p.weight = Math.max(0.3, weight)
+    // Floor kept below S's tolerance bound (0.5 * 0.6 = 0.3) so an organically
+    // generated ultra-light package still trips the weight-mismatch rule.
+    p.weight = Math.max(0.05, weight)
     p.phase = 'belt'
     p.x = x
     p.y = BELT.center

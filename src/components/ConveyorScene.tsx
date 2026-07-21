@@ -35,11 +35,10 @@ function PackageSprite({ pkg }: { pkg: Package }) {
   const y = pkg.y - h / 2
   const zoneColor = ROUTE_COLOR[pkg.zone]
   const decided = pkg.route !== null
-  const rejected = pkg.route === 'REJECT'
   const settling = pkg.phase === 'settled'
   const opacity = settling ? Math.max(0, pkg.settleMs / SETTLE_MS) : 1
 
-  const edge = rejected ? COLORS.danger : decided ? ROUTE_COLOR[pkg.route as Route] : COLORS.boxEdge
+  const edge = decided ? ROUTE_COLOR[pkg.route as Route] : COLORS.boxEdge
   const chipW = Math.min(14, w * 0.42)
   const chipH = Math.min(11, h * 0.5)
 
@@ -139,8 +138,8 @@ function Bin({ route, count }: { route: Route; count: number }) {
         width={bw}
         height={height}
         rx={6}
-        fill={isReject ? 'rgba(251,113,133,0.05)' : COLORS.surface}
-        stroke={isReject ? 'rgba(251,113,133,0.4)' : COLORS.line}
+        fill={isReject ? 'rgba(248,113,113,0.05)' : COLORS.surface}
+        stroke={isReject ? 'rgba(248,113,113,0.4)' : COLORS.line}
         strokeWidth={1.2}
       />
       {/* fill level */}
@@ -214,6 +213,58 @@ function DiverterArm({ route, swing }: { route: Route; swing: number }) {
   )
 }
 
+// Fully-static scene geometry, built once at module load. ConveyorScene
+// re-renders every frame; referencing these stable elements lets React skip
+// re-allocating and re-diffing ~40 unchanging nodes each frame.
+const BACKDROP_GRID = (
+  <g opacity={0.5}>
+    {Array.from({ length: 11 }, (_, i) => (
+      <line key={`gx${i}`} x1={i * 100} y1={0} x2={i * 100} y2={VIEW.H} stroke="#0f1a2b" strokeWidth={1} />
+    ))}
+    {Array.from({ length: 7 }, (_, i) => (
+      <line key={`gy${i}`} x1={0} y1={i * 100} x2={VIEW.W} y2={i * 100} stroke="#0f1a2b" strokeWidth={1} />
+    ))}
+  </g>
+)
+
+const CHUTES = (
+  <>
+    {ROUTES.map((r) => {
+      const cx = GATE[r]
+      const color = ROUTE_COLOR[r]
+      return (
+        <g key={`chute${r}`} opacity={0.5}>
+          <path
+            d={`M ${cx - 22} ${BELT.bottom} L ${cx + 22} ${BELT.bottom} L ${cx + 34} ${BIN.top} L ${cx - 34} ${BIN.top} Z`}
+            fill={r === 'REJECT' ? 'rgba(248,113,113,0.04)' : 'rgba(148,180,220,0.02)'}
+            stroke={color}
+            strokeOpacity={0.18}
+            strokeWidth={1}
+          />
+          <line x1={cx - 22} y1={BELT.bottom} x2={cx - 34} y2={BIN.top} stroke={color} strokeOpacity={0.28} strokeWidth={1} />
+          <line x1={cx + 22} y1={BELT.bottom} x2={cx + 34} y2={BIN.top} stroke={color} strokeOpacity={0.28} strokeWidth={1} />
+        </g>
+      )
+    })}
+  </>
+)
+
+const BELT_LEGS = (
+  <>
+    {[120, 320, 520, 720, 900].map((lx) => (
+      <rect key={`leg${lx}`} x={lx} y={BELT.bottom} width={10} height={40} fill="#0d1626" stroke={COLORS.line} />
+    ))}
+  </>
+)
+
+const DIVERT_SLOTS = (
+  <>
+    {ROUTES.map((r) => (
+      <rect key={`slot${r}`} x={GATE[r] - 22} y={BELT.bottom - 5} width={44} height={5} fill="#070d16" opacity={0.85} />
+    ))}
+  </>
+)
+
 function ConveyorSceneImpl({ engine, reducedMotion }: Props) {
   const packages = engine.packages
   const scanning = engine.isScanning
@@ -250,44 +301,19 @@ function ConveyorSceneImpl({ engine, reducedMotion }: Props) {
         </clipPath>
       </defs>
 
-      {/* faint backdrop grid */}
-      <g opacity={0.5}>
-        {Array.from({ length: 11 }, (_, i) => (
-          <line key={`gx${i}`} x1={i * 100} y1={0} x2={i * 100} y2={VIEW.H} stroke="#0f1a2b" strokeWidth={1} />
-        ))}
-        {Array.from({ length: 7 }, (_, i) => (
-          <line key={`gy${i}`} x1={0} y1={i * 100} x2={VIEW.W} y2={i * 100} stroke="#0f1a2b" strokeWidth={1} />
-        ))}
-      </g>
+      {/* faint backdrop grid (static) */}
+      {BACKDROP_GRID}
 
-      {/* chutes from belt down to bins */}
-      {ROUTES.map((r) => {
-        const cx = GATE[r]
-        const color = ROUTE_COLOR[r]
-        return (
-          <g key={`chute${r}`} opacity={0.5}>
-            <path
-              d={`M ${cx - 22} ${BELT.bottom} L ${cx + 22} ${BELT.bottom} L ${cx + 34} ${BIN.top} L ${cx - 34} ${BIN.top} Z`}
-              fill={r === 'REJECT' ? 'rgba(251,113,133,0.04)' : 'rgba(148,180,220,0.02)'}
-              stroke={color}
-              strokeOpacity={0.18}
-              strokeWidth={1}
-            />
-            <line x1={cx - 22} y1={BELT.bottom} x2={cx - 34} y2={BIN.top} stroke={color} strokeOpacity={0.28} strokeWidth={1} />
-            <line x1={cx + 22} y1={BELT.bottom} x2={cx + 34} y2={BIN.top} stroke={color} strokeOpacity={0.28} strokeWidth={1} />
-          </g>
-        )
-      })}
+      {/* chutes from belt down to bins (static) */}
+      {CHUTES}
 
       {/* bins */}
       {ROUTES.map((r) => (
         <Bin key={`bin${r}`} route={r} count={engine.stats.lanes[r]} />
       ))}
 
-      {/* belt legs */}
-      {[120, 320, 520, 720, 900].map((lx) => (
-        <rect key={`leg${lx}`} x={lx} y={BELT.bottom} width={10} height={40} fill="#0d1626" stroke={COLORS.line} />
-      ))}
+      {/* belt legs (static) */}
+      {BELT_LEGS}
 
       {/* belt surface */}
       <rect
@@ -323,18 +349,8 @@ function ConveyorSceneImpl({ engine, reducedMotion }: Props) {
           )}
         </g>
       </g>
-      {/* belt divert slots at each gate */}
-      {ROUTES.map((r) => (
-        <rect
-          key={`slot${r}`}
-          x={GATE[r] - 22}
-          y={BELT.bottom - 5}
-          width={44}
-          height={5}
-          fill="#070d16"
-          opacity={0.85}
-        />
-      ))}
+      {/* belt divert slots at each gate (static) */}
+      {DIVERT_SLOTS}
       {/* belt front rail */}
       <rect x={BELT.left} y={BELT.bottom - 3} width={BELT.right - BELT.left} height={3} fill="#0a1220" opacity={0.8} />
       {/* rollers */}

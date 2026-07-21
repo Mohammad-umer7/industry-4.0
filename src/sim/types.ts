@@ -98,9 +98,3 @@ export interface LogEntry {
 }
 
 export type Scenario = 'damaged' | 'unreadable'
-
-export interface EngineConfig {
-  running: boolean
-  speed: number // 0.5 | 1 | 2 | 4
-  spawnRate: number // packages per minute
-}

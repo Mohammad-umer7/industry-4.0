@@ -30,7 +30,7 @@ export default {
           a: '#2DD4BF',
           b: '#38BDF8',
           c: '#818CF8',
-          reject: '#FB7185',
+          reject: '#F87171',
         },
         // Text ramp
         ink: {

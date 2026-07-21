@@ -86,21 +86,51 @@ const STEPS: Step[] = [
 
 export function HowItWorksModal({ open, onClose }: Props) {
   const closeRef = useRef<HTMLButtonElement>(null)
+  const panelRef = useRef<HTMLDivElement>(null)
+  // Read the latest onClose from a ref so the effect below depends only on
+  // `open` — otherwise it would tear down/re-run every animation frame (App
+  // re-renders each frame while the line runs) and steal focus repeatedly.
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
 
   useEffect(() => {
     if (!open) return
+    const opener = document.activeElement as HTMLElement | null
+
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
+      if (e.key === 'Escape') {
+        onCloseRef.current()
+        return
+      }
+      if (e.key !== 'Tab' || !panelRef.current) return
+      // Trap focus within the dialog
+      const nodes = panelRef.current.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+      )
+      if (nodes.length === 0) return
+      const first = nodes[0]
+      const last = nodes[nodes.length - 1]
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault()
+        first.focus()
+      }
     }
+
     window.addEventListener('keydown', onKey)
     closeRef.current?.focus()
-    const prev = document.body.style.overflow
+    const prevOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
+
     return () => {
       window.removeEventListener('keydown', onKey)
-      document.body.style.overflow = prev
+      document.body.style.overflow = prevOverflow
+      // Return focus to the control that opened the dialog
+      opener?.focus?.()
     }
-  }, [open, onClose])
+  }, [open])
 
   if (!open) return null
 
@@ -113,10 +143,13 @@ export function HowItWorksModal({ open, onClose }: Props) {
     >
       <div
         className="absolute inset-0 bg-base/80 backdrop-blur-sm animate-fade-in"
-        onClick={onClose}
+        onClick={() => onCloseRef.current()}
         aria-hidden="true"
       />
-      <div className="relative z-10 w-full max-w-2xl animate-scale-in rounded-xl border border-line-strong bg-surface shadow-2xl">
+      <div
+        ref={panelRef}
+        className="relative z-10 w-full max-w-2xl animate-scale-in rounded-xl border border-line-strong bg-surface shadow-2xl"
+      >
         <div className="flex items-start justify-between border-b border-line px-5 py-4">
           <div>
             <h2 id="hiw-title" className="text-base font-bold text-ink">
