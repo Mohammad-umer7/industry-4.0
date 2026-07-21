@@ -1,0 +1,135 @@
+@import '@fontsource-variable/inter';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: dark;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-base text-ink font-sans antialiased;
+    /* Subtle control-room grid + vignette, painted once, no animation */
+    background-image:
+      radial-gradient(1200px 620px at 72% -8%, rgba(20, 184, 166, 0.06), transparent 60%),
+      radial-gradient(900px 520px at 0% 110%, rgba(56, 189, 248, 0.05), transparent 55%),
+      linear-gradient(180deg, #0b1220 0%, #0a1019 100%);
+    background-attachment: fixed;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Tabular numerals everywhere numbers tick, so counters never jitter */
+  .nums {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum' 1, 'cv01' 1;
+  }
+
+  ::selection {
+    background: rgba(45, 212, 191, 0.28);
+    color: #eafffb;
+  }
+}
+
+@layer components {
+  .panel {
+    @apply rounded-lg border border-line bg-surface;
+  }
+
+  .panel-title {
+    @apply text-2xs font-semibold uppercase tracking-label text-ink-muted;
+  }
+
+  .hairline {
+    @apply border-line;
+  }
+
+  /* Focus ring consistent with the teal brand */
+  .focusable {
+    @apply outline-none focus-visible:ring-2 focus-visible:ring-brand-bright/70 focus-visible:ring-offset-2 focus-visible:ring-offset-base;
+  }
+}
+
+/* Thin, dark, unobtrusive scrollbars for the telemetry panels */
+.scroll-slim {
+  scrollbar-width: thin;
+  scrollbar-color: #28374f transparent;
+}
+.scroll-slim::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.scroll-slim::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scroll-slim::-webkit-scrollbar-thumb {
+  background: #22314a;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.scroll-slim::-webkit-scrollbar-thumb:hover {
+  background: #2d3f5c;
+  background-clip: padding-box;
+}
+
+/* Range input — themed teal, consistent across the control bar */
+input[type='range'].range-teal {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 999px;
+  background: #22314a;
+  cursor: pointer;
+}
+input[type='range'].range-teal::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: #2dd4bf;
+  border: 2px solid #0b1220;
+  box-shadow: 0 0 0 1px rgba(45, 212, 191, 0.4);
+  transition: transform 0.12s ease;
+}
+input[type='range'].range-teal::-webkit-slider-thumb:hover {
+  transform: scale(1.12);
+}
+input[type='range'].range-teal::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: #2dd4bf;
+  border: 2px solid #0b1220;
+  box-shadow: 0 0 0 1px rgba(45, 212, 191, 0.4);
+}
+input[type='range'].range-teal:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Respect reduced motion: kill decorative animation, keep functional motion.
+   Package travel is driven by rAF transforms (not CSS animation) so it is
+   unaffected here; only ambient/looping decoration is disabled. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-pulse-dot,
+  .animate-sheen,
+  .animate-fade-in,
+  .animate-scale-in,
+  .animate-count-in,
+  .animate-row-in {
+    animation: none !important;
+  }
+  * {
+    scroll-behavior: auto !important;
+  }
+}
