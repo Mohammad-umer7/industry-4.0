@@ -16,6 +16,7 @@
 // ---------------------------------------------------------------------------
 
 import {
+  ARM_MS,
   BELT,
   BELT_SPEED,
   BIN,
@@ -47,7 +48,6 @@ import type {
   Zone,
 } from './types'
 
-const ARM_MS = 260 // diverter-arm swing duration
 const ACC_ALPHA = 0.1 // EMA weight for the accuracy index
 const LOG_CAP = 120 // retained log entries (panel shows a slice)
 const THROUGHPUT_WINDOW_MS = 60_000
@@ -521,6 +521,7 @@ export class Engine {
 
   private beginScan(p: Package): void {
     const d = decide(p)
+    p.phase = 'scanning'
     p.route = d.route
     p.confidence = d.confidence
     p.rejectReason = d.reason

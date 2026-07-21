@@ -67,7 +67,7 @@ function DecisionPanelImpl({ engine }: Props) {
   const sv = engine.scanView
 
   return (
-    <section className="panel flex min-h-0 flex-col">
+    <section className="panel flex min-h-0 flex-1 flex-col">
       <header className="flex items-center justify-between border-b border-line px-3.5 py-2.5">
         <div className="flex items-center gap-2">
           <PackageSearch size={14} className="text-brand-bright" />
@@ -103,7 +103,7 @@ function DecisionPanelImpl({ engine }: Props) {
               return (
                 <div
                   key={step.key}
-                  className={`flex items-center gap-2.5 rounded-md border px-2.5 py-1.5 transition-colors ${
+                  className={`flex items-center gap-2.5 rounded-md border px-2.5 py-1 transition-colors ${
                     revealed
                       ? isRoute
                         ? 'border-line-strong bg-surface-raised animate-row-in'

@@ -1,13 +1,12 @@
 import { memo } from 'react'
 import type { Engine } from '../sim/engine'
 import { sizeOf } from '../sim/engine'
-import { BELT, BIN, GATE, ROUTES, SCANNER, SCAN_X, VIEW } from '../sim/layout'
+import { ARM_MS, BELT, BELT_SPEED, BIN, GATE, ROUTES, SCANNER, SCAN_X, SETTLE_MS, VIEW } from '../sim/layout'
 import type { Package, Route } from '../sim/types'
 import { COLORS, ROUTE_COLOR } from '../lib/palette'
 
 const SLAT_GAP = 24
 const FILL_CAP = 24
-const ARM_MS = 260
 
 const ROUTE_TITLE: Record<Route, string> = {
   A: 'LANE A',
@@ -38,7 +37,7 @@ function PackageSprite({ pkg }: { pkg: Package }) {
   const decided = pkg.route !== null
   const rejected = pkg.route === 'REJECT'
   const settling = pkg.phase === 'settled'
-  const opacity = settling ? Math.max(0, pkg.settleMs / 240) : 1
+  const opacity = settling ? Math.max(0, pkg.settleMs / SETTLE_MS) : 1
 
   const edge = rejected ? COLORS.danger : decided ? ROUTE_COLOR[pkg.route as Route] : COLORS.boxEdge
   const chipW = Math.min(14, w * 0.42)
@@ -218,7 +217,7 @@ function DiverterArm({ route, swing }: { route: Route; swing: number }) {
 function ConveyorSceneImpl({ engine, reducedMotion }: Props) {
   const packages = engine.packages
   const scanning = engine.isScanning
-  const scroll = reducedMotion ? 0 : (engine.simTime / 1000) * 172
+  const scroll = reducedMotion ? 0 : (engine.simTime / 1000) * BELT_SPEED
   const slatOffset = scroll % SLAT_GAP
   // sweep for the scan beam
   const sweep = reducedMotion ? 0 : Math.sin(engine.simTime / 90) * 22

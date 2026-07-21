@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Pause } from 'lucide-react'
 import { useSimulation } from './hooks/useSimulation'
 import { useReducedMotion } from './hooks/useReducedMotion'
@@ -14,6 +14,8 @@ export default function App() {
   const { engine, frame, controls } = useSimulation()
   const reducedMotion = useReducedMotion()
   const [howOpen, setHowOpen] = useState(false)
+  const openHow = useCallback(() => setHowOpen(true), [])
+  const closeHow = useCallback(() => setHowOpen(false), [])
 
   const running = engine.running
   const surgeActive = engine.surgeActive
@@ -26,7 +28,7 @@ export default function App() {
         surgeSecondsLeft={engine.surgeSecondsLeft}
         throughput={engine.stats.throughput}
         clock={engine.clock}
-        onHowItWorks={() => setHowOpen(true)}
+        onHowItWorks={openHow}
       />
 
       {/* small-screen advisory (layout still works, just denser) */}
@@ -76,12 +78,12 @@ export default function App() {
         </section>
 
         {/* telemetry sidebar */}
-        <aside className="flex w-full min-h-0 shrink-0 flex-col gap-3 lg:w-[33%] lg:min-w-[336px] lg:max-w-[440px]">
-          <div className="flex min-h-[248px] flex-[5_1_0%] flex-col">
+        <aside className="scroll-slim flex w-full min-h-0 shrink-0 flex-col gap-3 lg:w-[33%] lg:min-w-[336px] lg:max-w-[440px] lg:overflow-y-auto">
+          <div className="flex flex-col lg:h-[380px] lg:flex-none">
             <DecisionPanel engine={engine} v={engine.vScan} />
           </div>
           <Dashboard engine={engine} v={engine.vStats} />
-          <div className="flex min-h-[150px] flex-[4_1_0%] flex-col">
+          <div className="flex h-72 flex-col lg:h-auto lg:min-h-[168px] lg:flex-1">
             <EventLog engine={engine} v={engine.vLog} />
           </div>
         </aside>
@@ -96,7 +98,7 @@ export default function App() {
         controls={controls}
       />
 
-      <HowItWorksModal open={howOpen} onClose={() => setHowOpen(false)} />
+      <HowItWorksModal open={howOpen} onClose={closeHow} />
     </div>
   )
 }

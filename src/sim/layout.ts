@@ -72,6 +72,8 @@ export const SPAWN_X = -34
 export const DIVERT_MS = 520
 /** How long a package rests in the bin before being recycled (ms). */
 export const SETTLE_MS = 240
+/** Diverter-arm swing duration (ms) — shared by engine timing and scene render. */
+export const ARM_MS = 260
 /** Reveal cadence for each rule-chain row (ms). */
 export const STEP_MS = 74
 /** Scanner dwell window (ms) — a package pauses here to be read. */
